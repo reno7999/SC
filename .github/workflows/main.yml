@@ -1,0 +1,37 @@
+name: Gravação da Instalação do Programa
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  record-installation:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Baixar o ffmpeg para gravação
+      - name: Instalar ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      # 2. Baixar o programa
+      - name: Baixar o programa
+        run: wget https://download.scautomacoes.com/baixar/producao/client_creator_ig.zip -O client_creator_ig.zip
+
+      # 3. Extrair o programa
+      - name: Extrair o programa
+        run: unzip client_creator_ig.zip -d ./client_creator
+
+      # 4. Simular a gravação da instalação
+      - name: Gravar a instalação
+        run: |
+          ffmpeg -f x11grab -video_size 1920x1080 -i $DISPLAY -t 10 -pix_fmt yuv420p output.mp4
+        env:
+          DISPLAY: ":0"
+
+      # 5. Fazer upload do vídeo como artefato
+      - name: Upload do vídeo da instalação
+        uses: actions/upload-artifact@v4
+        with:
+          name: video-instalacao
+          path: output.mp4
