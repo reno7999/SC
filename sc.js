@@ -1,52 +1,43 @@
-const { chromium } = require('playwright');
 const fs = require('fs');
-const path = require('path');
-const extract = require('extract-zip');
+const axios = require('axios');
 
-(async () => {
-  // Diretório onde o vídeo e os arquivos baixados serão salvos
-  const downloadDir = path.resolve(__dirname, 'downloads');
-  if (!fs.existsSync(downloadDir)) fs.mkdirSync(downloadDir);
-
-  // Inicializar o navegador com gravação de vídeo
-  const browser = await chromium.launch({
-    headless: false,
-  });
-
-  const context = await browser.newContext({
-    recordVideo: { dir: path.resolve(__dirname, 'videos') }, // Pasta para salvar o vídeo
-    acceptDownloads: true, // Permitir downloads
-  });
-
-  const page = await context.newPage();
+async function downloadFile(url, outputPath) {
+  console.log('Acessando a URL de download...');
+  const writer = fs.createWriteStream(outputPath);
 
   try {
-    // Acessar a URL de download
-    const downloadUrl = 'https://download.scautomacoes.com/baixar/producao/client_creator_ig.zip';
-    console.log('Acessando a URL de download...');
-    await page.goto(downloadUrl);
+    const response = await axios({
+      url,
+      method: 'GET',
+      responseType: 'stream',
+    });
 
-    // Esperar e capturar o download
-    const [download] = await Promise.all([
-      page.waitForEvent('download'),
-      page.click('a'), // Ajuste conforme necessário para clicar no link de download
-    ]);
+    response.data.pipe(writer);
 
-    // Salvar o arquivo baixado
-    const downloadPath = path.join(downloadDir, 'client_creator_ig.zip');
-    console.log('Baixando arquivo...');
-    await download.saveAs(downloadPath);
-    console.log(`Arquivo baixado em: ${downloadPath}`);
-
-    // Extrair o arquivo ZIP
-    const extractPath = path.join(downloadDir, 'extracted');
-    console.log('Extraindo arquivo...');
-    await extract(downloadPath, { dir: extractPath });
-    console.log(`Arquivos extraídos para: ${extractPath}`);
+    return new Promise((resolve, reject) => {
+      writer.on('finish', resolve);
+      writer.on('error', reject);
+    });
   } catch (error) {
-    console.error('Erro durante o processo:', error);
-  } finally {
-    // Fechar o navegador
-    await browser.close();
+    console.error('Erro durante o download:', error.message);
+    throw error;
+  }
+}
+
+(async () => {
+  const url = 'https://download.scautomacoes.com/baixar/producao/client_creator_ig.zip';
+  const outputPath = './client_creator_ig.zip';
+
+  await downloadFile(url, outputPath);
+  console.log('Download concluído!');
+
+  // Aqui você pode adicionar a lógica para extrair o arquivo
+  const extract = require('extract-zip');
+  try {
+    console.log('Extraindo o arquivo...');
+    await extract(outputPath, { dir: __dirname });
+    console.log('Extração concluída!');
+  } catch (err) {
+    console.error('Erro durante a extração:', err.message);
   }
 })();
