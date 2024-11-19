@@ -1,4 +1,4 @@
-name: Gravação da Instalação do Programa
+name: Playwright Automation
 
 on:
   push:
@@ -6,32 +6,28 @@ on:
       - main
 
 jobs:
-  record-installation:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Baixar o ffmpeg para gravação
-      - name: Instalar ffmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Checkout do código
+        uses: actions/checkout@v3
 
-      # 2. Baixar o programa
-      - name: Baixar o programa
-        run: wget https://download.scautomacoes.com/baixar/producao/client_creator_ig.zip -O client_creator_ig.zip
-
-      # 3. Extrair o programa
-      - name: Extrair o programa
-        run: unzip client_creator_ig.zip -d ./client_creator
-
-      # 4. Simular a gravação da instalação
-      - name: Gravar a instalação
-        run: |
-          ffmpeg -f x11grab -video_size 1920x1080 -i $DISPLAY -t 10 -pix_fmt yuv420p output.mp4
-        env:
-          DISPLAY: ":0"
-
-      # 5. Fazer upload do vídeo como artefato
-      - name: Upload do vídeo da instalação
-        uses: actions/upload-artifact@v4
+      - name: Instalar Node.js
+        uses: actions/setup-node@v3
         with:
-          name: video-instalacao
-          path: output.mp4
+          node-version: '16'
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Executar o script
+        run: node script.js
+
+      - name: Upload de vídeos e arquivos
+        uses: actions/upload-artifact@v3
+        with:
+          name: artefatos-playwright
+          path: |
+            downloads/
+            videos/
