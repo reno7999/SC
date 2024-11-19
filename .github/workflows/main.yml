@@ -25,7 +25,7 @@ jobs:
         run: npx playwright install
 
       - name: Executar o script
-        run: node script.js
+        run: node sc.js
 
       - name: Upload de vídeos e arquivos
         uses: actions/upload-artifact@v4
