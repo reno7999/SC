@@ -22,10 +22,10 @@ jobs:
         run: npm install
 
       - name: Executar o script
-        run: node script.js
+        run: node sc.js
 
       - name: Upload de vídeos e arquivos
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artefatos-playwright
           path: |
