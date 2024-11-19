@@ -24,8 +24,11 @@ jobs:
       - name: Instalar navegadores do Playwright
         run: npx playwright install
 
-      - name: Executar o script
-        run: node sc.js
+      - name: Instalar Xvfb
+        run: sudo apt-get install -y xvfb
+
+      - name: Executar script com Xvfb
+        run: xvfb-run --auto-servernum -- node sc.js
 
       - name: Upload de vídeos e arquivos
         uses: actions/upload-artifact@v4
